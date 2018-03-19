@@ -1,0 +1,11 @@
+{% extends 'admin/model/list.html' %}
+{% block body %}
+    {{ super() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            $('.actions-nav > li:first-child').after(
+                '<li><a href="{{ url_for("trades.update") }}" title="Update Trades">Update</li>'
+            );
+        })
+    </script>
+{% endblock %}
