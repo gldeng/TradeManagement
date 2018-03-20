@@ -8,9 +8,6 @@ from .models import db, User, Trade
 from .views import TradeAdminView, TradeAssociationAdminView
 
 
-# blueprint = Blueprint('trademan', __name__, template_folder='templates')
-
-
 def _authenticate():
     return Response(
         'Please login', 401,
@@ -48,7 +45,7 @@ def get_trade_entry(raw_json):
                 exchange=raw_json['exchange'],
                 trade_id = raw_json['tid'],
                 timestampms = raw_json['timestampms'],
-                pair = 'btc_usd',
+                pair = raw_json['pair'],
                 price = raw_json['price'],
                 quantity = raw_json['amount'],
                 fee = raw_json['fee_amount'],
@@ -60,6 +57,19 @@ def get_trade_entry(raw_json):
             return Trade(
                 **raw_json
             )
+    if raw_json['exchange'] == 'binance':
+        return Trade(
+            exchange=raw_json['exchange'],
+            trade_id = raw_json['id'],
+            timestampms = raw_json['time'],
+            pair = raw_json['pair'],
+            price = raw_json['price'],
+            quantity = float(raw_json['qty']),
+            fee = float(raw_json['commission']),
+            fee_currency = raw_json['commissionAsset'],
+            trade_type = 'Buy' if raw_json['isBuyer'] else 'Sell',
+            raw = json.dumps(raw_json),
+        )
 
 
 class MyFlask(Flask):
@@ -74,7 +84,7 @@ class MyFlask(Flask):
                     elif 'binance' in url:
                         item['exchange'] = 'binance'
                     if not item.get('pair'):
-                        item['pair'] = '_'.join(re.findall('btc|eth|usd|eos|ruff', url.split('/')[-1]))
+                        item['pair'] = '_'.join(re.findall('btc|eth|usd|eos|ruff|neo', url.split('/')[-1]))
                     trd = get_trade_entry(item)
                     if trd:
                         db.session.merge(trd)
@@ -84,7 +94,6 @@ class MyFlask(Flask):
 def create_app(config_pyfile):
     app = MyFlask(__name__, instance_relative_config=False)
     app.config.from_pyfile(config_pyfile)
-    # app.register_blueprint(blueprint)
     db.init_app(app)
     login_manager = LoginManager(app)
     login_manager.user_loader(_load_user)
@@ -112,6 +121,6 @@ def create_app(config_pyfile):
 
     with app.app_context():
         db.create_all()
-        app.update_trades()
+        # app.update_trades()
 
     return app
