@@ -58,18 +58,36 @@ def get_trade_entry(raw_json):
                 **raw_json
             )
     if raw_json['exchange'] == 'binance':
-        return Trade(
-            exchange=raw_json['exchange'],
-            trade_id = raw_json['id'],
-            timestampms = raw_json['time'],
-            pair = raw_json['pair'],
-            price = raw_json['price'],
-            quantity = float(raw_json['qty']),
-            fee = float(raw_json['commission']),
-            fee_currency = raw_json['commissionAsset'],
-            trade_type = 'Buy' if raw_json['isBuyer'] else 'Sell',
-            raw = json.dumps(raw_json),
-        )
+        if 'address' not in raw_json:
+            # trade
+            return Trade(
+                exchange=raw_json['exchange'],
+                trade_id = raw_json['id'],
+                timestampms = raw_json['time'],
+                pair = raw_json['pair'],
+                price = raw_json['price'],
+                quantity = float(raw_json['qty']),
+                fee = float(raw_json['commission']),
+                fee_currency = raw_json['commissionAsset'],
+                trade_type = 'Buy' if raw_json['isBuyer'] else 'Sell',
+                raw = json.dumps(raw_json),
+            )
+        else:
+            # transfer
+            timestampms = raw_json['insertTime']
+            trade_id = timestampms
+            return Trade(
+                exchange=raw_json['exchange'],
+                trade_id = trade_id,
+                timestampms = timestampms,
+                pair = raw_json['asset'].lower(),
+                price = 1.0,
+                quantity = float(raw_json['amount']),
+                fee = 0.0,
+                fee_currency = raw_json['asset'],
+                trade_type = 'Credit' if 'deposit' in raw_json['type'].lower() else 'Debit' if 'withdraw' in raw_json['type'].lower() else '',
+                raw = json.dumps(raw_json),
+            )
     if raw_json['exchange'] == 'fyb':
         return Trade(
             **raw_json
