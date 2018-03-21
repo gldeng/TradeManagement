@@ -70,6 +70,10 @@ def get_trade_entry(raw_json):
             trade_type = 'Buy' if raw_json['isBuyer'] else 'Sell',
             raw = json.dumps(raw_json),
         )
+    if raw_json['exchange'] == 'fyb':
+        return Trade(
+            **raw_json
+        )
 
 
 class MyFlask(Flask):
