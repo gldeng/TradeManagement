@@ -70,7 +70,7 @@ def get_transformed_order_entry(item):
         'Deposit': 'Credit',
         'Withdrawal': 'Debit',
         'S': 'Sell',
-        'B': 'B'
+        'B': 'Buy'
     }
     return {
         'exchange': 'fyb',
