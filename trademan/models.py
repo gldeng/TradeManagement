@@ -79,3 +79,15 @@ class TradeAssociation(db.Model):
         ),
         {}
     )
+
+
+class TradeSummary(db.Model):
+    exchange = db.Column(db.String(20), primary_key=True)
+    asset = db.Column(db.String(20), primary_key=True)
+    debit = db.Column(db.Float)
+    credit = db.Column(db.Float)
+    updated = db.Column(db.DateTime)
+
+    @property
+    def net(self):
+        return self.credit - self.debit

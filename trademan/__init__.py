@@ -4,8 +4,10 @@ from flask_admin import Admin
 import hashlib
 import requests
 import re
-from .models import db, User, Trade
-from .views import TradeAdminView, TradeAssociationAdminView
+from collections import defaultdict
+from .models import db, User, Trade, TradeSummary
+from .views import TradeAdminView, TradeAssociationAdminView, TradeSummaryAdminView
+from datetime import datetime
 
 
 def _authenticate():
@@ -112,6 +114,37 @@ class MyFlask(Flask):
                         db.session.merge(trd)
         db.session.commit()
 
+    def update_trade_summary(self):
+        summaries = defaultdict(lambda : {'credit': 0.0, 'debit': 0.0})
+        for item in Trade.query.all():
+            if item.trade_type in ['Buy', 'Sell']:
+                first_id = (item.exchange, item.pair.split('_')[0])
+                first_amt = item.quantity
+                second_id = (item.exchange, item.pair.split('_')[1])
+                second_amt = item.quantity * item.price
+                if item.trade_type == 'Buy':
+                    summaries[first_id]['credit'] += first_amt
+                    summaries[second_id]['debit'] += second_amt
+                else:
+                    summaries[first_id]['debit'] += first_amt
+                    summaries[second_id]['credit'] += second_amt
+            else:
+                # credit (deposit) or debit (withdraw)
+                summaries[(item.exchange, item.pair)][item.trade_type.lower()] += item.quantity
+            if item.fee:
+                summaries[(item.exchange, item.fee_currency.lower().replace('usdt', 'usd'))]['debit'] += item.fee
+        now = datetime.now()
+        TradeSummary.query.delete()
+        for k, v in summaries.items():
+            ts = TradeSummary(
+                exchange=k[0],
+                asset=k[1],
+                credit=v['credit'],
+                debit=v['debit'],
+                updated=now
+            )
+            db.session.merge(ts)
+        db.session.commit()
 
 def create_app(config_pyfile):
     app = MyFlask(__name__, instance_relative_config=False)
@@ -133,6 +166,12 @@ def create_app(config_pyfile):
         TradeAssociationAdminView(
             db.session, name='Trade Associations', endpoint='tradeassociations',
             url='/tradeassociations'
+        )
+    )
+    admin.add_view(
+        TradeSummaryAdminView(
+            db.session, name='Trade Summaries', endpoint='tradesummaries',
+            url='/tradesummaries'
         )
     )
 
