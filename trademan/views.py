@@ -38,7 +38,7 @@ class TradeSummaryAdminView(BaseAdminView):
     can_delete = False
     can_edit = False
     can_create = False
-    column_list = ['exchange', 'asset', 'credit', 'debit', 'net', 'updated']
+    column_list = ['exchange', 'asset', 'buy', 'sell', 'fee', 'credit', 'debit', 'total_credit', 'total_debit', 'net', 'updated']
     column_sortable_list = ['exchange', 'asset']
     column_searchable_list = ['exchange', 'asset']
 

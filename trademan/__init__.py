@@ -115,7 +115,7 @@ class MyFlask(Flask):
         db.session.commit()
 
     def update_trade_summary(self):
-        summaries = defaultdict(lambda : {'credit': 0.0, 'debit': 0.0})
+        summaries = defaultdict(lambda : {'buy': 0.0, 'sell': 0.0, 'fee': 0.0, 'credit': 0.0, 'debit': 0.0})
         for item in Trade.query.all():
             if item.trade_type in ['Buy', 'Sell']:
                 first_id = (item.exchange, item.pair.split('_')[0])
@@ -123,16 +123,16 @@ class MyFlask(Flask):
                 second_id = (item.exchange, item.pair.split('_')[1])
                 second_amt = item.quantity * item.price
                 if item.trade_type == 'Buy':
-                    summaries[first_id]['credit'] += first_amt
-                    summaries[second_id]['debit'] += second_amt
+                    summaries[first_id]['buy'] += first_amt
+                    summaries[second_id]['sell'] += second_amt
                 else:
-                    summaries[first_id]['debit'] += first_amt
-                    summaries[second_id]['credit'] += second_amt
+                    summaries[first_id]['sell'] += first_amt
+                    summaries[second_id]['buy'] += second_amt
             else:
                 # credit (deposit) or debit (withdraw)
                 summaries[(item.exchange, item.pair)][item.trade_type.lower()] += item.quantity
             if item.fee:
-                summaries[(item.exchange, item.fee_currency.lower().replace('usdt', 'usd'))]['debit'] += item.fee
+                summaries[(item.exchange, item.fee_currency.lower().replace('usdt', 'usd'))]['fee'] += item.fee
         now = datetime.now()
         TradeSummary.query.delete()
         for k in sorted(summaries.keys()):
@@ -140,6 +140,9 @@ class MyFlask(Flask):
             ts = TradeSummary(
                 exchange=k[0],
                 asset=k[1],
+                buy=v['buy'],
+                sell=v['sell'],
+                fee=v['fee'],
                 credit=v['credit'],
                 debit=v['debit'],
                 updated=now

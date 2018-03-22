@@ -95,18 +95,29 @@ class TradeAssociation(db.Model):
 class TradeSummary(db.Model):
     exchange = db.Column(db.String(20), primary_key=True)
     asset = db.Column(db.String(20), primary_key=True)
+    buy = db.Column(db.Float)
+    sell = db.Column(db.Float)
     credit = db.Column(db.Float)
     debit = db.Column(db.Float)
+    fee = db.Column(db.Float)
     updated = db.Column(db.DateTime)
 
     @property
+    def total_credit(self):
+        return self.credit + self.buy
+
+    @property
+    def total_debit(self):
+        return self.debit + self.sell + self.fee
+
+    @property
     def net(self):
-        return self.credit - self.debit
+        return self.total_credit - self.total_debit
 
     def to_json(self):
         fields = [
-            'exchange', 'asset', 'credit',
-            'debit', 'net'
+            'exchange', 'asset', 'buy', 'sell',
+            'credit', 'debit', 'fee', 'total_credit', 'total_debit', 'net'
         ]
         out = {f: getattr(self, f) for f in fields}
         out['updated'] = str(self.updated)
