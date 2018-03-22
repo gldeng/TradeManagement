@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, Response, json, redirect, url_for
+from flask import Flask, Blueprint, Response, json, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, current_user, login_required
 from flask_admin import Admin
 import hashlib
@@ -135,7 +135,8 @@ class MyFlask(Flask):
                 summaries[(item.exchange, item.fee_currency.lower().replace('usdt', 'usd'))]['debit'] += item.fee
         now = datetime.now()
         TradeSummary.query.delete()
-        for k, v in summaries.items():
+        for k in sorted(summaries.keys()):
+            v = summaries[k]
             ts = TradeSummary(
                 exchange=k[0],
                 asset=k[1],
@@ -179,6 +180,22 @@ def create_app(config_pyfile):
     @login_required
     def index():
         return redirect(url_for('admin.index'))
+
+    @app.route('/api/trades')
+    @login_required
+    def api_trades():
+        out = []
+        for item in Trade.query.all():
+            out.append(item.to_json())
+        return jsonify(out)
+
+    @app.route('/api/tradesummaries')
+    @login_required
+    def api_tradesummaries():
+        out = []
+        for item in TradeSummary.query.all():
+            out.append(item.to_json())
+        return jsonify(out)
 
     with app.app_context():
         db.create_all()

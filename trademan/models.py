@@ -58,6 +58,17 @@ class Trade(db.Model):
     def __repr__(self):
         return self.exchange + ' ' + str(self.trade_id)
 
+    def to_json(self):
+        fields = [
+            'exchange', 'trade_id', 'timestampms',
+            'pair', 'price', 'quantity', 'fee',
+            'fee_currency', 'trade_type', 'notes',
+            'raw'
+        ]
+        out = {f: getattr(self, f) for f in fields}
+        out['trade_date'] = str(self.trade_date)
+        return out
+
 
 class TradeAssociation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -84,10 +95,19 @@ class TradeAssociation(db.Model):
 class TradeSummary(db.Model):
     exchange = db.Column(db.String(20), primary_key=True)
     asset = db.Column(db.String(20), primary_key=True)
-    debit = db.Column(db.Float)
     credit = db.Column(db.Float)
+    debit = db.Column(db.Float)
     updated = db.Column(db.DateTime)
 
     @property
     def net(self):
         return self.credit - self.debit
+
+    def to_json(self):
+        fields = [
+            'exchange', 'asset', 'credit',
+            'debit', 'net'
+        ]
+        out = {f: getattr(self, f) for f in fields}
+        out['updated'] = str(self.updated)
+        return out
