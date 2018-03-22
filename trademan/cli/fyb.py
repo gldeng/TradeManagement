@@ -46,7 +46,7 @@ def get_transformed_transfer_entry(item):
     }
     return {
         'exchange': 'fyb',
-        'trade_id': int(item['Ticket No']),
+        'trade_id': int(str(item['Ticket No'])+str(timestampms)),
         'timestampms': timestampms,
         'pair': 'sgd' if pair and pair[0] == 'S$' else pair[0].lower() if pair else '',
         'price': 1.0,
@@ -74,7 +74,7 @@ def get_transformed_order_entry(item):
     }
     return {
         'exchange': 'fyb',
-        'trade_id': int(item['Ticket No']),
+        'trade_id': int(str(item['Ticket No'])+str(timestampms)),
         'timestampms': timestampms,
         'pair': 'btc_sgd',
         'price': float(price[0]) if quantity else 0.0,

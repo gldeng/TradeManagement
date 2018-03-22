@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
 
 class Trade(db.Model):
     exchange = db.Column(db.String(20), primary_key=True)
-    trade_id = db.Column(db.Integer, primary_key=True)
+    trade_id = db.Column(db.BigInteger, primary_key=True)
     timestampms = db.Column(db.Integer)
     pair = db.Column(db.String(100))
     price = db.Column(db.Float)
