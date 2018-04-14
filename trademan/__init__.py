@@ -122,6 +122,10 @@ class MyFlask(Flask):
                 first_amt = item.quantity
                 second_id = (item.exchange, item.pair.split('_')[1])
                 second_amt = item.quantity * item.price
+                if first_id == 'usd':
+                    first_id += '_' + second_id
+                if second_id == 'usd':
+                    second_id += '_' + first_id
                 if item.trade_type == 'Buy':
                     summaries[first_id]['buy'] += first_amt
                     summaries[second_id]['sell'] += second_amt
