@@ -76,7 +76,7 @@ def get_trade_entry(raw_json):
             )
         else:
             # transfer
-            timestampms = raw_json['insertTime']
+            timestampms = raw_json.get('insertTime') or raw_json.get('applyTime')
             trade_id = timestampms
             return Trade(
                 exchange=raw_json['exchange'],
