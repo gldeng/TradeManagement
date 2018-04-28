@@ -2,6 +2,7 @@ from flask import current_app, url_for, redirect
 from flask_admin.contrib import sqla
 from flask_admin import expose
 from flask_login import current_user
+from wtforms import fields
 from .models import Trade, TradeAssociation, TradeSummary
 
 
@@ -19,8 +20,24 @@ class TradeAdminView(BaseAdminView):
     column_sortable_list = ['exchange', 'trade_id', 'price', 'quantity', 'trade_type']
     column_searchable_list = ['exchange', 'trade_id', 'price', 'quantity', 'trade_type']
 
+    form_edit_rules = ['identifier','timestampms', 'pair', 'trade_type', 'price',
+                       'quantity', 'fee', 'fee_currency', 'raw', 'notes', 'upstreams',
+                       'downstreams']
+
+    form_widget_args = {
+        f: {
+            'readonly': True
+        }
+        for f in form_edit_rules[:-3]
+    }
+
     def __init__(self, session, **kwargs):
         super(TradeAdminView, self).__init__(Trade, session, **kwargs)
+
+    def get_edit_form(self):
+        form = self.scaffold_form()
+        form.identifier = fields.StringField('Identifier')
+        return form
 
     @expose('/update')
     def update(self, *args, **kwargs):

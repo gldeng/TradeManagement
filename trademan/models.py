@@ -52,11 +52,15 @@ class Trade(db.Model):
     )
 
     @property
+    def identifier(self):
+        return self.exchange + ' ' + str(self.trade_id)
+
+    @property
     def trade_date(self):
         return datetime.fromtimestamp(float(self.timestampms) / 1e3)
 
     def __repr__(self):
-        return self.exchange + ' ' + str(self.trade_id)
+        return self.identifier
 
     def to_json(self):
         fields = [
