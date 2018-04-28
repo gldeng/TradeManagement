@@ -9,7 +9,7 @@ install_requires = [
 
 setup(
     name="trademan" ,
-    version="0.1.0" ,
+    version="0.1.1" ,
     description="A simple UI for manage trades",
     license="MIT",
     packages=find_packages(),
